@@ -1,33 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Literal, Optional
+from typing import Optional
 
-
-EventType = Literal[
-    "observation",  # perception results (e.g., VLM frame understanding)
-    "action",       # action executed
-    "plan",         # plan proposed
-    "tool",         # tool output
-    "note",         # human/operator note
-]
-
-
-@dataclass(frozen=True)
-class ContextEvent:
-    type: EventType
-    text: str
-    ts: datetime = datetime.utcnow()
-    meta: dict[str, Any] | None = None
-    namespace: str = "default"  # for optional isolation (e.g., "perception"|"planning"|"tools")
+from .types import ContextEvent
 
 
 class ContextManager:
     """Ingests events and produces bounded planning context.
 
-    This is intentionally minimal. We will wire it into LangGraph once we lock the
-    state shape + node responsibilities.
+    Minimal in-memory manager. LangGraph wiring lives in `context_manager.graph`.
     """
 
     def __init__(self, *, max_history: int = 50):
@@ -45,11 +26,8 @@ class ContextManager:
         return [e for e in self._events if e.namespace == namespace]
 
     def planning_context(self) -> str:
-        """Return a naive context string (placeholder).
+        """Naive context string (placeholder).
 
-        Next: replace with summarization/compression + memory retrieval.
+        Next: replace with summarization/compression + retrieval.
         """
-        lines: list[str] = []
-        for e in self._events:
-            lines.append(f"[{e.type}] {e.text}")
-        return "\n".join(lines)
+        return "\n".join(f"[{e.type}] {e.text}" for e in self._events)
