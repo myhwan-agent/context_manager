@@ -10,3 +10,7 @@
 ## 2026-02
 
 - 2026-02-09: OpenClaw C5f0Acb0 C644B8cc. C5c5Bb34 C694CcadC744 C6d0C7a5(ops/WORKLOG.md)C5d0 B204C801D558Ace0, reports/ D3f4B354C5d0 C77c/uc8fc/uc6d4 C815B9ac D6c4 C5f0B9d0 D68cAce0 Bcf4Ace0C11cB85c C885D569 Cde8D569D558B294 B8e8D2f4 D655C815
+
+## 2026-02
+
+- 2026-02-09: Context Manager 목표 정의. VLM(qwen3-vl-32b) 1 FPS, long-horizon plan을 위해 컨텍스트 요약/기록/히스토리/isolate 기능을 LangGraph로 개발.

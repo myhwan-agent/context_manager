@@ -1,0 +1,21 @@
+[project]
+name = "context-manager"
+version = "0.0.1"
+description = "Context managing module for VLM planning loops"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "myhwan-agent" }]
+
+dependencies = [
+  "langgraph>=0.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
