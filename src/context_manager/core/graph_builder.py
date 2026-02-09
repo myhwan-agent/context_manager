@@ -13,7 +13,14 @@ class ContextManagerGraph:
     """
 
     def __init__(self) -> None:
-        self._graph = self._build().compile()
+        try:
+            self._graph = self._build().compile()
+        except ModuleNotFoundError as e:
+            if e.name == "langgraph":
+                raise ModuleNotFoundError(
+                    "langgraph is not installed. Create a venv and run: pip install -e ."
+                ) from e
+            raise
 
     def invoke(self, state: Dict[str, Any] | RequestContext) -> Dict[str, Any]:
         # LangGraph expects a dict-like state.

@@ -6,7 +6,15 @@ resulting summary, plan, and history.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any, Dict, Optional
+
+# Allow running `python demo.py` without installing the package.
+_ROOT = Path(__file__).resolve().parent
+_SRC = _ROOT / "src"
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
 
 from context_manager.core.context_factory import RequestContext, b64_encode
 from context_manager.core.graph_builder import ContextManagerGraph
