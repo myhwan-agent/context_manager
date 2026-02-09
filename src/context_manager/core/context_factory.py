@@ -7,10 +7,10 @@ from typing import Any, Literal
 
 EventType = Literal[
     "observation",  # perception results (frame understanding)
-    "action",       # action executed
-    "plan",         # plan proposed
-    "tool",         # tool output
-    "note",         # human/operator note
+    "action",  # action executed
+    "plan",  # plan proposed
+    "tool",  # tool output
+    "note",  # human/operator note
 ]
 
 

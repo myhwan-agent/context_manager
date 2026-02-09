@@ -1,6 +1,11 @@
-"""Context manager for VLM planning loops."""
+"""context_manager package."""
 
-from .manager import ContextManager
-from .types import ContextEvent
+from .core.context_factory import ContextEvent, EventType
+from .core.graph_builder import CMState, build_graph
 
-__all__ = ["ContextManager", "ContextEvent"]
+__all__ = [
+    "ContextEvent",
+    "EventType",
+    "CMState",
+    "build_graph",
+]

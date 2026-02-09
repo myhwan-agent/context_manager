@@ -7,8 +7,8 @@ Usage (recommended):
   python examples/langgraph_m1.py
 """
 
-from context_manager.graph import CMState, build_graph
-from context_manager.types import ContextEvent
+from context_manager.core.graph_builder import CMState, build_graph
+from context_manager.core.context_factory import ContextEvent
 
 
 graph = build_graph(max_history=10)
