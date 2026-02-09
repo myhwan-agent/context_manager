@@ -1,54 +1,35 @@
 from __future__ import annotations
 
-from typing import Callable, Optional
+from typing import Any, Dict
 
-from ..core.context_factory import ContextEvent
-from ..core.graph_builder import CMState
+from ..core.context_factory import ContextEvent, RequestContext
 
 
-def default_should_summarize(event: ContextEvent) -> bool:
-    """Trigger-based summarization policy.
+def summarize_context(state: Dict[str, Any] | RequestContext) -> Dict[str, Any]:
+    """Summarize current context.
 
-    Designed for ~1 FPS loops: avoid per-frame summarization.
+    Runnable skeleton: generate a compact text summary from history.
 
-    Triggers (default):
-    - action / plan events
-    - meta.trigger_summary == True
+    Later:
+    - trigger-based summarization policy
+    - model-based summarization (qwen3-vl-32b or a smaller summarizer)
     """
 
-    if event.type in ("action", "plan"):
-        return True
-    if event.meta and event.meta.get("trigger_summary") is True:
-        return True
-    return False
+    history: list[ContextEvent] = state.get("history", []) or []
 
-
-def summarize(
-    state: CMState,
-    event: ContextEvent,
-    *,
-    should_summarize: Callable[[ContextEvent], bool] = default_should_summarize,
-    summarizer: Optional[Callable[[str, list[ContextEvent]], str]] = None,
-) -> CMState:
-    if not should_summarize(event):
-        return state
-
-    if summarizer is not None:
-        state.summary = summarizer(state.summary, state.events)
-        return state
-
-    # Heuristic placeholder summary: keep last action/plan + last observation.
-    last_action = next((e for e in reversed(state.events) if e.type == "action"), None)
-    last_plan = next((e for e in reversed(state.events) if e.type == "plan"), None)
-    last_obs = next((e for e in reversed(state.events) if e.type == "observation"), None)
+    # simple heuristic summary
+    obs = [e for e in history if e.type == "observation"]
+    notes = [e for e in history if e.type == "note"]
 
     parts: list[str] = []
-    if last_plan:
-        parts.append(f"PLAN: {last_plan.text}")
-    if last_action:
-        parts.append(f"LAST_ACTION: {last_action.text}")
-    if last_obs:
-        parts.append(f"LAST_OBS: {last_obs.text}")
+    if obs:
+        parts.append("OBS:")
+        for e in obs[:3]:
+            parts.append(f"- {e.text}")
+    if notes:
+        parts.append("NOTES:")
+        for e in notes[:2]:
+            parts.append(f"- {e.text}")
 
-    state.summary = "\n".join(parts)
-    return state
+    state["summary"] = "\n".join(parts).strip()
+    return state  # type: ignore[return-value]

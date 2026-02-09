@@ -1,30 +1,106 @@
-"""Demo entrypoint (kept at repo root).
+"""Demonstration script for the LangGraph-based context manager.
 
-This file is intentionally lightweight. It demonstrates how to build and invoke
-our LangGraph-based context manager graph.
-
-Run (recommended):
-  python3 -m venv .venv
-  source .venv/bin/activate
-  pip install -e .
-  python demo.py
+This script initializes the graph, runs it with example inputs, and prints the
+resulting summary, plan, and history.
 """
 
-from context_manager.core.graph_builder import CMState, build_graph
-from context_manager.core.context_factory import ContextEvent
+from __future__ import annotations
+
+from typing import Any, Dict, Optional
+
+from context_manager.core.context_factory import RequestContext, b64_encode
+from context_manager.core.graph_builder import ContextManagerGraph
+from context_manager.core.prompts.prompt import (
+    DEFAULT_ALLOWED_ACTIONS,
+    DEFAULT_OBJECTS,
+    TASK_DESCRIPTION,
+    PromptManager,
+)
+from context_manager.utils.evaluation import compute_action_count, compute_summary_length
 
 
-def main() -> None:
-    graph = build_graph(max_history=20)
-    state = CMState()
+def build_init_state(
+    image_path: Optional[str],
+    video_path: Optional[str],
+    task_description: str,
+    allowed_actions: Optional[list[str]],
+    objects: Optional[list[str]],
+    robot_mode: str,
+    use_task_example: bool,
+    custom_user_input: Optional[str],
+) -> Dict[str, Any] | RequestContext:
+    prompt_manager = PromptManager(
+        task_description,
+        allowed_actions=allowed_actions or DEFAULT_ALLOWED_ACTIONS,
+        objects=objects or DEFAULT_OBJECTS,
+        use_task_example=use_task_example,
+    )
 
-    state = graph.invoke(state, ContextEvent(type="observation", text="frame: desk, laptop, mug"))
-    state = graph.invoke(state, ContextEvent(type="plan", text="Pick up the mug and place it on coaster"))
-    state = graph.invoke(state, ContextEvent(type="action", text="move_arm(to=mug)"))
+    if custom_user_input is None:
+        user_input = prompt_manager.get_user_prompt(
+            has_video=video_path is not None,
+            has_image=image_path is not None,
+            include_task_example=False,
+        )
+    else:
+        user_input = custom_user_input
 
-    print("\n=== planning_context ===\n")
-    print(state.planning_context)
+    state: Dict[str, Any] = {
+        "sensor_data": {
+            "image": b64_encode(image_path),
+            "video": b64_encode(video_path),
+            "scene_graph": "knowledge",
+        },
+        "user_input": user_input,
+        "additional_context": {
+            "robot_mode": robot_mode,
+            "task_description": task_description,
+            "allowed_actions": allowed_actions or DEFAULT_ALLOWED_ACTIONS,
+            "objects": objects or DEFAULT_OBJECTS,
+            "use_task_example": use_task_example,
+        },
+    }
+    return state
+
+
+def run_demo(image: Optional[str] = None, video: Optional[str] = None) -> None:
+    cmg = ContextManagerGraph()
+
+    init_state = build_init_state(
+        image_path=image,
+        video_path=video,
+        task_description=TASK_DESCRIPTION,
+        allowed_actions=None,
+        objects=None,
+        robot_mode="sim",
+        use_task_example=False,
+        custom_user_input=None,
+    )
+
+    result = cmg.invoke(init_state)
+
+    summary = result.get("summary", "")
+    plan = result.get("plan", "")
+    history = result.get("history", [])
+
+    print("\n=== SUMMARY ===\n")
+    print(summary)
+
+    print("\n=== PLAN ===\n")
+    print(plan)
+
+    print("\n=== HISTORY ===\n")
+    for e in history:
+        # ContextEvent prints as dataclass repr; keep readable.
+        try:
+            print(f"[{e.type}] ({e.namespace}) {e.text}")
+        except Exception:
+            print(e)
+
+    print("\n=== EVAL ===\n")
+    print(f"summary_length: {compute_summary_length(summary)}")
+    print(f"action_count: {compute_action_count(plan)}")
 
 
 if __name__ == "__main__":
-    main()
+    run_demo()
