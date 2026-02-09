@@ -32,16 +32,21 @@ class ContextManagerGraph:
         from langgraph.graph import StateGraph
 
         from ..nodes.context_source import context_collect
+        from ..nodes.history_manager import init_history, update_history_from_events
         from ..nodes.summarizer import summarize_context
         from ..nodes.planner import plan_actions
 
         g = StateGraph(dict)
+        g.add_node("init_history", init_history)
         g.add_node("context_collect", context_collect)
+        g.add_node("update_history", update_history_from_events)
         g.add_node("summarize", summarize_context)
         g.add_node("plan", plan_actions)
 
-        g.set_entry_point("context_collect")
-        g.add_edge("context_collect", "summarize")
+        g.set_entry_point("init_history")
+        g.add_edge("init_history", "context_collect")
+        g.add_edge("context_collect", "update_history")
+        g.add_edge("update_history", "summarize")
         g.add_edge("summarize", "plan")
         g.set_finish_point("plan")
         return g
