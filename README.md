@@ -17,6 +17,12 @@ Core responsibilities:
 
 We use **LangGraph** as the orchestration layer.
 
+## Docs language layout
+
+- English originals: `docs/eng/`
+- Korean translations: `docs/kor/`
+- Rule: keep filenames identical across both folders and sync updates together.
+
 ## Quickstart (dev)
 
 Because macOS Python may be externally managed, use a venv:
