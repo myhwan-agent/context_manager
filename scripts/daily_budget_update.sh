@@ -4,9 +4,9 @@ set -euo pipefail
 DATE_LOCAL="${1:-$(date +%F)}"
 
 # Load local secret env
-if [ -f /Users/ai-agent/Desktop/myhwan-agent.sh ]; then
+if [ -r /Users/ai-agent/Desktop/myhwan-agent.sh ]; then
   # shellcheck disable=SC1091
-  source /Users/ai-agent/Desktop/myhwan-agent.sh
+  source /Users/ai-agent/Desktop/myhwan-agent.sh || true
 fi
 if [ -f .env ]; then
   set -a
